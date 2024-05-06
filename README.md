@@ -47,3 +47,29 @@ After the playbook completes, you should have three new Docker containers runnin
 -   The playbook assumes that the target machine has Docker installed and the Docker service is running.
 -   The playbook allows an empty root password for the MariaDB containers for simplicity. In a production environment, you should set a secure root password.
 -   The playbook mounts the SQL files to the containers' /docker-entrypoint-initdb.d directory, which means the data will be lost if the containers are stopped and removed. For persistent data storage, you should configure Docker volumes or bind mounts.
+
+#  Hourly Database Backup
+![Screenshot of (crontab -l) command.](cron.jpg)
+For scheduling hourly backups of three MariaDB databases running in Docker containers.
+
+## Usage
+
+Run the playbook:
+```
+	ansible-playbook backup.yml
+```
+
+This will schedule a cron job on the target machine to perform the following tasks every hour:
+
+1. For each of the databases db1, db2, and db3, execute a mysqldump command inside the corresponding Docker container (mariadb_db1, mariadb_db2, and mariadb_db3).
+2. The mysqldump command will create a backup file for the database in the /backup directory on the target machine.
+3. The backup file will be named with the current date and time in the format YYYYMMDDHHMISS.<database_name>.sql.
+
+After the playbook completes, you should see the cron job scheduled on the target machine, and hourly backups should start running.
+
+## Notes
+
+- The playbook assumes that the target machine has Docker installed and the Docker service is running.
+- The playbook assumes that the MariaDB containers are named mariadb_db1, mariadb_db2, and mariadb_db3. If your container names are different, you will need to modify the playbook accordingly.
+- The playbook creates a /backup directory on the target machine to store the backup files. You may want to adjust the backup location or configure persistent storage for the backup files.
+- The playbook assumes that the MariaDB containers have a root user with an empty password. In a production environment, you should set a secure root password and modify the playbook accordingly.
